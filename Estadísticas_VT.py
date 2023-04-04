@@ -21,20 +21,35 @@ dfhabil= dfhabil[dfhabil['Dia']!= (i for i in feriados)]
 
 print(dfhabil)
 ## Veo num. de transacciones por  'Linea' en el total de días habiles
-TxL= dfhabil.groupby(['Ramal']).size().to_frame('NTrans')
+PromedioHabiles= dfhabil.groupby(['Ramal']).size().to_frame('NTrans').reset_index()
 Thabiles= len(dfhabil['Dia'].unique())
-print(TxL)
 # obtengo el promedio por día x linea
-PromedioHabiles= TxL.apply(lambda NTrans: (NTrans/Thabiles), axis=1)
-PromedioHabiles= PromedioHabiles.astype({"NTrans":"int"})
+
+PromedioHabiles['NTransPromedio']= PromedioHabiles['NTrans'].apply(lambda NTrans: (NTrans/Thabiles))
+#PromedioHabiles= PromedioHabiles.astype({"NTrans":"int"})
 print(PromedioHabiles)
 
-total = PromedioHabiles["NTrans"].sum()
+total = PromedioHabiles["NTransPromedio"].sum()
 factor = 100/total
 
-PromedioHabiles['FracUso']= PromedioHabiles['NTrans'].apply(lambda cant: (cant*factor))
-PromedioHabiles=PromedioHabiles.sort_values(by ="FracUso", ascending=False)
+PromedioHabiles['FracUso']= PromedioHabiles["NTransPromedio"].apply(lambda cant: (cant*factor))
+PromedioHabiles= PromedioHabiles.astype({'FracUso':'int'})
+PromedioHabiles=PromedioHabiles.sort_values(by ="NTransPromedio", ascending=False)
 print(PromedioHabiles)
 
 ## realizo un gráfico
-fig, ax 
+fig, ax = plt.subplots(figsize=(8,4))
+ax.barh(PromedioHabiles['Ramal'].astype('str'), PromedioHabiles["NTrans"], color=["#12bc8e"])
+
+for c in ax.containers:
+    labels = [(renglon for v in PromedioHabiles['FracUso'])]
+    ax.bar_label(c, labels=labels,label_type='edge',padding=0.3)
+ax.xaxis.set_tick_params(pad=5)
+ax.yaxis.set_tick_params(pad=5) # dist de las etiquetas
+ax.grid(color='green',linestyle='-.',linewidth=0.5,alpha=0.15)
+ax.invert_yaxis()
+ax.set_title(" Barplot de las transacciones promedio en un día hábil, por línea",
+             loc='center', fontname='Arial',fontsize='10', pad=5,color='black')
+plt.suptitle("Transacciones promedio por línea",
+              fontname='Arial',fontsize='20',color='black', fontweight='bold',y=0.99)
+plt.show()
