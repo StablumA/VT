@@ -98,6 +98,56 @@ ax.set_title("Matriz de calor de transacciones por línea y hora", loc='center',
 
 
 
+
+
+
+
+
+###
+# Cuantas personas toman 1 2 3 4 colectivos por día
+def casosn(dataframe,n):
+    """ Filtra numero de transacciones por día, por usuario"""
+    dfaux1= dataframe['Tarjeta'].value_counts().reset_index() # cant viajes por mes
+    dfaux1.columns=['ID','Cantidad']
+    dfaux2= dfaux1['Cantidad'].value_counts().reset_index()
+    dfaux2.columns=['Viajes por día','Cantidad']
+    dfaux1=dfaux1[dfaux1['Cantidad']==n]
+    salida= dataframe[dataframe['Tarjeta'].isin(dfaux1['ID'])]
+    salida= salida.sort_values(by=['Tarjeta','FECHATRX'])
+    salida= salida.reset_index()
+    return salida
+
+TablaCruzada= pd.DataFrame()
+dias= dfhabil['Dia'].unique()
+cases = [1,2,3,4]
+TablaCruzada["NroDeTrx"]=None
+
+for c in range(len(cases)):
+    a = 0
+    for d in dias:
+        aux=dfhabil[dfhabil['Dia']==d]
+        a += len(casosn(aux,cases[c]))
+    TablaCruzada.at[c,'NroDeTrx'] = a    # trans promedios por día de cda caso
+    TablaCruzada.at[c,"Caso"] = cases[c]
+
+TablaCruzada['PorcentajeRelativo'] = TablaCruzada['NroDeTrx'] / TablaCruzada['NroDeTrx'].sum()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#########################
+# Habrá que filtrar las que no tienen datos de Lat y Long
+
 #### Mapa de calor para un día hábil en particular
 lineas=df['Ramal'].dropna().unique()
 style1= style1 = {'fillColor' : '#5b5b5f', 'color': '#5b5b5f'}
@@ -172,4 +222,3 @@ title_html = '''
 mapa.get_root().html.add_child(folium.Element(title_html))
 mapa.save("Mapacalor"+".html")
 print ("Mapa Generado")
-#
