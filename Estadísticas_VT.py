@@ -148,6 +148,11 @@ TablaCruzada['PorcentajeRelativo'] = TablaCruzada['NroDeTrx'] / TablaCruzada['Nr
 #########################
 # Habrá que filtrar las que no tienen datos de Lat y Long
 
+for _,row in df.iterrows(): # para cada renglon
+    if row['latitude']=='0' or row['longitude']=='0': # que tenga latitud o long
+        df=df.drop(index=row.name) # quito el dato
+df.reset_index().drop('index',axis=1) # reseteo indices y borro la columna que se me generó
+
 #### Mapa de calor para un día hábil en particular
 lineas=df['Ramal'].dropna().unique()
 style1= style1 = {'fillColor' : '#5b5b5f', 'color': '#5b5b5f'}
